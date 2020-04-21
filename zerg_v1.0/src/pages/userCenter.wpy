@@ -39,14 +39,14 @@
   </view>
     <view class="categoryGroup">
     <ul>
-      <li wx:for="{{category}}" wx-for-index="index" id="{{item.id}}" data-index="{{index}}" @tap="selectItem" class="{{index==selectedId?'selected':''}}">
+      <li wx:for="{{category}}" wx-for-index="index" id="{{item.id}}" data-index="{{index}}" @tap="selectItem" class="{{index===selectedId?'selected':''}}">
         <a href="javascript:;">{{item.name}}</a>
       </li>
     </ul>
   </view>
   <view class="clear"></view>
   <!--列表-->
-  <view class="nearPhoto" wx:if="{{userInfo.role==1}}">
+  <view class="nearPhoto" wx:if="{{userInfo.role===1}}">
     <repeat for="{{categoryList}}">
         <view class="photoBox" @tap="clickNearPhoto('{{item.id}}')">
           <image src="{{item.main_img_url}}" />
@@ -62,20 +62,21 @@
     游客身份仅支持查看照片，如需发布权限可通过首页授权申请成为好友成员。
     <button type="primary" style="background:#007ACC; margin-top:30px;" @tap="toLogin">前往授权</button>
   </view>
-  <TabBar></TabBar>
+  <tabBar :tabbar.sync="tabbar"></tabBar>
 </template>
 <script>
   import wepy from 'wepy';
-  import TabBar from '../components/tabBar';
+  import tabBar from '../components/tabBar';
   export default class Index extends wepy.page {
     config = {
         navigationBarTitleText: '个人中心'
-        }
+    }
       
     components = {
-      TabBar:TabBar
+      tabBar
     }
     data = {
+      tabbar: null,
       result:{},
       userInfo:'',
       nearPhoto:[], //最近的个人发布列表
@@ -150,6 +151,9 @@
         }
       })
 
+    }
+    onShow() {
+      this.tabbar = this.$parent.tabBarClickHandle(2, this)
     }
   }
 </script>

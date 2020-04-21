@@ -27,6 +27,32 @@ export default class extends wepy.app {
       navigationBarBackgroundColor: '#007ACC',
       navigationBarTitleText: 'WeChat',
       navigationBarTextStyle: 'white'
+    },
+    tabBar: {
+      color: '#8E8E93',
+      selectedColor: '#365CF3',
+      borderStyle: 'white',
+      backgroundColor: '#FAFAFA',
+      list: [
+        {
+          pagePath: 'pages/index',
+          iconPath: 'assters/home.png',
+          selectedIconPath: 'assters/home_active.png',
+          text: '首页'
+        },
+        {
+          pagePath: 'pages/publishPhoto',
+          iconPath: 'assters/add.png',
+          selectedIconPath: 'assters/add.png',
+          text: '圈子'
+        },
+        {
+          pagePath: 'pages/userCenter',
+          iconPath: 'assters/user.png',
+          selectedIconPath: 'assters/user_active.png',
+          text: '我的'
+        }
+      ]
     }
   }
   tabChange(e) {
@@ -35,9 +61,37 @@ export default class extends wepy.app {
   globalData = {
     userInfo: null,
       //"http://47.240.107.187/,http://www.zerg.com/"
-      baseUrl:"http://47.240.107.187/"
+    baseUrl:"http://47.240.107.187/",
+    tabBar: {
+      'tapNum': 0,
+      'color': '#8E8E93',
+      'selectedColor': '#365CF3',
+      'borderStyle': 'white',
+      'backgroundColor': '#FAFAFA',
+      'list': [
+        {
+          'pagePath': 'index',
+          'iconPath': '../assters/home.png',
+          'selectedIconPath': '../assters/home_active.png',
+          'text': '首页'
+        },
+        {
+          'iconPath': '../assters/add.png',
+          'isSpecial': true
+        },
+        {
+          'pagePath': 'userCenter',
+          'iconPath': '../assters/user.png',
+          'selectedIconPath': '../assters/user_active.png',
+          'text': '我的'
+        }
+      ]
+    }
   }
-
+  // 隐藏config中配置好的官方tabbar, 再使用自定义的tabbar
+  onShow() {
+    wepy.hideTabBar()
+  }
   constructor () {
     super()
     this.use('requestfix')
@@ -71,5 +125,21 @@ export default class extends wepy.app {
       }
     })
   }
+  // 处理tabbar是否选中
+  tabBarClickHandle(id, that) {
+    console.log(id)
+    let tbList = this.globalData.tabBar.list
+    tbList.forEach((item, index) => {
+      if (id === index) {
+        tbList[id].selected = true
+        that.$apply()
+      } else {
+        tbList[index].selected = false
+        that.$apply()
+      }
+    })
+    return this.globalData.tabBar
+  }
+
 }
 </script>

@@ -1,39 +1,109 @@
 <style lang="less">
-.tabBar{height:117rpx; width:100%; background:#fff; border-top:#007ACC solid 4rpx; position:fixed; bottom:0; box-shadow:#000 3px 3px 3px;}
- .addButton{background:url("http://47.240.107.187/public/images/addButton.png") no-repeat 0 0; color:#007ACC; width:150rpx; height:60rpx; padding-top:140rpx; position:absolute; bottom:0rpx; left:50%; margin-left:-75rpx;}
-.addButton text{padding-left:20rpx;}
-  .toIndex,.toCenter{color:#007ACC; font-size:36rpx; height:117rpx; line-height:117rpx; padding:0 100rpx;}
-  .toIndex{float:left; background:url("http://47.240.107.187/public/images/home.png") no-repeat 50rpx center;}
-  .toCenter{float:right; background:url("http://47.240.107.187/public/images/userCenter.png") no-repeat 50rpx center;}
+  .tabbar_box{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    z-index: 9999999;
+    width: 100%;
+    height: 98rpx;
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.1);
+  }
+  .tabbar_box.iphoneX-height{
+    padding-bottom: 66rpx;
+  }
+  .middle-wrapper{
+    position: absolute;
+    right: 310rpx;
+    bottom: 0;
+    background-color: #fff;
+    width: 120rpx;
+    height: 120rpx;
+    border-radius: 50%;
+    border-top: 2rpx solid #f2f2f3;
+  }
+  .middle-wrapper.iphoneX-height{
+    bottom: 66rpx;
+  }
+  .tabbar_nav{
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-size: 20rpx;
+    height: 100%;
+    position: relative;
+  }
+  .tabbar_icon{
+    width: 48rpx;
+    height: 48rpx;
+  }
+  .special-wrapper{
+    position: absolute;
+    left: 70rpx;
+    top: -40rpx;
+    width: 128rpx;
+    height: 128rpx;
+    border-radius: 50%;
+    border-top: 2rpx solid #f2f2f3;
+    background-color: #fff;
+    text-align: center;
+    box-sizing: border-box;
+    padding: 14rpx;
+  }
+  .special-wrapper .tabbar_icon{
+    width: 90rpx;
+    height: 90rpx;
+  }
 </style>
 <template>
-  <view class="tabBar">
-    <navigator  class="toIndex" url="../pages/index">首页</navigator>
-    <navigator  class="toCenter" url="../pages/userCenter">我的</navigator>
-    <!--定位+号-->
-    <view class="addButton" @tap="publish">
-      <text>发布照片</text>
-    </view>
-  </view>
+  <view class="tabbar_box" style="background-color:{{tabbar.backgroundColor}}">
+    <repeat for="{{tabbar.list}}" key="index">
+      <navigator wx:if="{{item.isSpecial}}" class="tabbar_nav" hover-class="none">
+        <view class='special-wrapper' @tap="publish">
+          <image class="tabbar_icon" src="{{item.iconPath}}" />
+        </view>
+      </navigator>
+      <navigator wx:else class="tabbar_nav" hover-class="none" url="{{item.pagePath}}" style="color:{{item.selected ? tabbar.selectedColor : tabbar.color}}" open-type="switchTab">
+        <image class="tabbar_icon" src="{{item.selected ? item.selectedIconPath : item.iconPath}}" />
+        <text>{{item.text}}</text>
+      </navigator>
+    </repeat></view>
 </template>
 <script>
   import wepy from 'wepy'
-  export default class TabBar extends wepy.component {
-  data={}
-  methods={
-    publish(){
-      let userInfo = wx.getStorageSync('userInfo');
-      if(userInfo||userInfo.role<=1 ){
-        wx.redirectTo({
-          url:"publishPhoto"
-        })
-      }else{
-        wx.redirectTo({
-          url:"login"
-        })
+  export default class tabbar extends wepy.component {
+    props = {
+      tabbar: {
+        type: Object,
+        default: {}
       }
+    }
+    data={}
+    onShow() {
 
     }
-  }
+    onLoad() {
+
+    }
+    methods={
+      publish(){
+        let userInfo = wx.getStorageSync('userInfo');
+        if(userInfo||userInfo.role<=1 ){
+          wx.redirectTo({
+            url:"publishPhoto"
+          })
+        }else{
+          wx.redirectTo({
+            url:"login"
+          })
+        }
+
+      }
+    }
+
   }
 </script>

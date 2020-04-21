@@ -93,7 +93,7 @@ text.view{float:right; background:url("http://47.240.107.187/public/images/view.
     </repeat>
     <view class="clear"></view>
   </view>
-  <TabBar></TabBar>
+  <TabBar :tabbar.sync="tabbar"></TabBar>
 </template>
 <script>
   import wepy from 'wepy';
@@ -107,6 +107,7 @@ text.view{float:right; background:url("http://47.240.107.187/public/images/view.
       TabBar:TabBar
     }
     data = {
+      tabbar: null,
       userInfo: {
         nickName: '加载中...'
       },
@@ -169,8 +170,8 @@ text.view{float:right; background:url("http://47.240.107.187/public/images/view.
       })
     }
     onShow() {
-
-
+      wepy.hideTabBar()
+      this.tabbar = this.$parent.tabBarClickHandle(0, this)
     }
   }
 </script>
