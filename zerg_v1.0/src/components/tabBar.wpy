@@ -1,0 +1,39 @@
+<style lang="less">
+.tabBar{height:117rpx; width:100%; background:#fff; border-top:#007ACC solid 4rpx; position:fixed; bottom:0; box-shadow:#000 3px 3px 3px;}
+ .addButton{background:url("http://47.240.107.187/public/images/addButton.png") no-repeat 0 0; color:#007ACC; width:150rpx; height:60rpx; padding-top:140rpx; position:absolute; bottom:0rpx; left:50%; margin-left:-75rpx;}
+.addButton text{padding-left:20rpx;}
+  .toIndex,.toCenter{color:#007ACC; font-size:36rpx; height:117rpx; line-height:117rpx; padding:0 100rpx;}
+  .toIndex{float:left; background:url("http://47.240.107.187/public/images/home.png") no-repeat 50rpx center;}
+  .toCenter{float:right; background:url("http://47.240.107.187/public/images/userCenter.png") no-repeat 50rpx center;}
+</style>
+<template>
+  <view class="tabBar">
+    <navigator  class="toIndex" url="../pages/index">首页</navigator>
+    <navigator  class="toCenter" url="../pages/userCenter">我的</navigator>
+    <!--定位+号-->
+    <view class="addButton" @tap="publish">
+      <text>发布照片</text>
+    </view>
+  </view>
+</template>
+<script>
+  import wepy from 'wepy'
+  export default class TabBar extends wepy.component {
+  data={}
+  methods={
+    publish(){
+      let userInfo = wx.getStorageSync('userInfo');
+      if(userInfo||userInfo.role<=1 ){
+        wx.redirectTo({
+          url:"publishPhoto"
+        })
+      }else{
+        wx.redirectTo({
+          url:"login"
+        })
+      }
+
+    }
+  }
+  }
+</script>

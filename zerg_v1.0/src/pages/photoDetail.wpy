@@ -1,0 +1,196 @@
+<style lang="less">
+h1{width:100%; display: block; height:50rpx; font-size:50rpx; margin-top:50rpx; text-align:center}
+image{width:auto; height:auto}
+.clear{clear:both}
+  .authorInfo{width:660rpx; display:block; font-size:25rpx; text-align:center; color:#666; padding:20rpx; margin:0 auto; border-bottom:#ddd solid 1px;}
+  .author{margin-right:20rpx;}
+  .photo_group{width:100%; text-align:center}
+  .photo_group image{width:640rpx; margin:20rpx auto;}
+  .commentList{padding-bottom:250rpx;}
+  .comment{background:#eee; width:660rpx; margin:0 auto; border-radius:15rpx; margin-top:40rpx;}
+  .commenterInfo{height:30rpx; line-height:30rpx; border-bottom:#ccc solid 1px; padding:20rpx;}
+  .detail{display:block; padding:30rpx 20rpx; border-bottom:#ccc solid 1px; font-size:24rpx;}
+  .commenter{float:left; font-size:24rpx;}
+  .creatTime{float:right; color:#666; font-size:25rpx;}
+  .bottomInfo{height:30rpx; line-height:30rpx; padding:20rpx;}
+  .report{background:#007ACC; color:#fff; font-size:28rpx; border-radius:15rpx; width:200rpx; text-align:center; height:60rpx; line-height:60rpx; margin:0 auto;}
+  .showCommentBox textarea{border:#ddd solid 1px; width:640rpx; margin:20rpx auto; border-radius:15rpx; text-indent:20rpx;}
+.buttonBox{float:right; margin-right:40rpx;}
+  .buttonBox button{width:150rpx; background:#007Acc; color:#fff; height:60rpx; line-height:60rpx; margin:0 20rpx; float:left}
+  .noneComment{width:80%; margin:20px auto; padding:10px; border-radius:5px; background:#f2f2f2;}
+  .content{padding:20rpx 60rpx; color:#666;}
+</style>
+<template class="PhotoDetail">
+  <h1>{{result.title}}</h1>
+  <view class="authorInfo">
+    <text class="author">作者：{{result.author}}</text>
+    <text>发布时间：{{result.create_time}}</text>
+  </view>
+  <view class="content">{{result.description}}</view>
+  <!--照片列表-->
+  <view class="photo_group">
+    <repeat for="{{result.get_photo_img_id}}">
+      <view>
+        <image src="{{item.get_photo_img.url}}" mode="widthFix" />
+      </view>
+    </repeat>
+  </view>
+  <!--评论区-->
+  <view class="commentList">
+    <button wx:if="{{report}}" class="report" @tap="report">发表评论</button>
+    <view wx:if="{{showCommentBox}}" class="showCommentBox">
+      <textarea type="text" maxlength="250"  bindinput="getCommentValue" value="{{commentContent}}" ></textarea>
+      <view class="buttonBox">
+        <button class="confirm" @tap="confirmComment">发布</button>
+        <button class="cancel" @tap="cancelComment">取消</button>
+      </view>
+      <view class="clear"></view>
+    </view>
+    <view class="noneComment"  wx:if="{{comment==''}}">
+      <view>照片还没有评论，单击发表评论抢沙发吧！</view>
+    </view>
+    <view wx:else>
+      <repeat for="{{comment}}">
+        <view class="comment">
+          <view class="commenterInfo">
+            <text class="commenter">{{item.name}}:</text>
+          </view>
+          <text class="detail">{{item.detail}}</text>
+          <view class="bottomInfo">
+            <text class="creatTime">{{item.create_time}}</text>
+          </view>
+        </view>
+      </repeat>
+    </view>
+
+  </view>
+  <TabBar></TabBar>
+</template>
+<script>
+  import wepy from 'wepy';
+  import TabBar from '../components/tabBar';
+  export default class Index extends wepy.page {
+    config = {
+        navigationBarTitleText: '照片详情'
+        }
+      
+    components = {
+      TabBar:TabBar
+    }
+    data = {
+      options:'',
+      result:'',  //页面内容数据
+      comment:'',
+      showCommentBox:false, //评论框
+      report:true,  //发布按钮
+      commentContent:'', //评论内容
+      photoId:'' //照片组id
+    }
+
+    methods = {
+      getCommentValue(e){
+        this.commentContent = e.detail.value
+        this.$apply();
+      },
+      report(){         //打开评论框
+        let userInfo = wx.getStorageSync('userInfo');
+        if(userInfo.role<=1){
+          this.report = false;
+          this.showCommentBox = true;
+        }else{
+          wx.redirectTo({
+            url:"login"
+          })
+        }
+
+      },
+      confirmComment(){     //提交评论
+        var _this = this;
+        let userInfo = wx.getStorageSync('userInfo');
+        let newComment = {
+            photoId:this.photoId,
+            userId:userInfo.userId,
+            nickname:userInfo.nickname,
+            commentContent: this.commentContent
+          }
+        wx.request({
+          url:  _this.$parent.globalData.baseUrl+'/postComment/',
+          header: {
+            'content-type': 'application/json'
+          },
+          data:newComment,
+          success (res) {
+            if(res.data.code===1){
+                _this.requestComment(_this.options);
+                _this.cancelComment();
+                _this.$apply();
+            }else if(res.data.code==0){
+              wx.showToast({
+                title:'评论不能为空！'
+              })
+            }
+             _this.$apply();
+          }
+        })
+      },
+
+    }
+    requestComment(options){
+            let _this = this;
+            //请求照片评论
+             wx.request({
+              url:  _this.$parent.globalData.baseUrl+'/getPhotoComment/'+options.id,
+              header: {
+                'content-type': 'application/json'
+              },
+              success (res) {
+                if(res.data.code==0){
+                  _this.comment = "";
+                }else{
+                  _this.comment = res.data;
+                  _this.$apply();
+                }
+              }
+            })
+          }
+    events = {
+
+    }
+    cancelComment(){  //取消评论框
+        this.report = true;
+        this.showCommentBox = false;
+      }
+    onLoad(options){
+      this.options = options;
+      var _this = this;
+      this.photoId = options.id;
+      //请求照片详情图片
+      wx.request({
+        url:  _this.$parent.globalData.baseUrl+'/getPhotoDetail/'+options.id,
+        header: {
+          'content-type': 'application/json'
+        },
+        success (res) {
+         _this.result = res.data[0];
+          _this.$apply();
+          //新增浏览次数
+           wx.request({
+              url:  _this.$parent.globalData.baseUrl+'/addView/',
+             data:{
+                view:_this.result.view,
+                photoId:_this.photoId
+             },
+              success (res) {
+                console.log(res);
+                //_this.$apply();
+              }
+            })
+        }
+      })
+      this.requestComment(options); //刷新评论
+    }
+    onShow() {
+
+    }
+  }
+</script>

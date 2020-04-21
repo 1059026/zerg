@@ -1,0 +1,155 @@
+<style lang="less">
+  .clear{clear:both}
+  .headPart{height:450rpx;background-image: linear-gradient(#007ACC, #5083d1);}
+  .headBox{text-align:center; padding-top:80rpx; padding-bottom:30rpx;}
+  .avatar{width:180rpx;height:180rpx; margin:0 auto; border:#fff solid 2px; border-radius:180rpx; overflow:hidden; box-shadow:#666 5px 5rpx 15rpx;}
+  .nickName{color:#fff; font-size:36rpx; margin-top:30rpx;}
+  .fg{margin:0 10rpx;}
+  .h4Wrap{width:100%; height:72rpx; line-height:72rpx; background:#0068AE;}
+  .h4{font-size:36rpx; padding-left:20rpx; margin-left:30rpx; margin-top:35rpx; color:#fff; border-left:#fff solid 3px;}
+  .nearPhoto{background:#fff; margin-top:20rpx; padding:20rpx 20rpx 180rpx 20rpx;}
+  .nearPhoto h4{border-left:#007acc solid 6rpx; padding-left:15rpx; margin-left:20rpx; color:#007acc}
+  .photoBox{padding:10rpx; float:left; border:#ddd solid 1rpx; width:300rpx; margin:20rpx 0 0 20rpx; height:300rpx; position:relative}
+  .photoBox image{width:100%; height:100%;}
+  .bottomBar{position:absolute; width:100%; height:50rpx; line-height:50rpx; bottom:0rpx; left:0rpx; background-color:rgb(96,159,201,0.3); color:#fff; font-size:24rpx;}
+  text.title{padding-left:20rpx; display: inline-block; width:200rpx; overflow: hidden; white-space: nowrap; text-overflow:ellipsis;}
+  text.view{float:right; background:url("http://47.240.107.187/public/images/view.png") no-repeat left center; padding:0 20rpx 0 50rpx;}
+  .categoryGroup li{float:left; width:90rpx; margin:0rpx 28rpx; text-align:center; height:50rpx; margin-top:20rpx;}
+  .categoryGroup li.selected a{color:#0068AE;border-top:#0068AE solid 4rpx}
+    .categoryGroup li a{display:block;}
+  .categoryGroup li span{color:#ccc; font-size:24rpx;}
+  .tipsText{padding:150rpx 40rpx; text-align:center; color:#999}
+</style>
+<template class="userCenter">
+  <view class="headPart">
+    <view class="headBox">
+      <view class="avatar">
+        <open-data type="userAvatarUrl"></open-data>
+      </view>
+      <view class="nickName">
+        <open-data type="userNickName"></open-data>
+        <text class="fg">|</text>
+        <text wx:if="{{userInfo.role==1}}">群相册会员</text>
+        <text wx:else="{{userInfo.role==2}}">游客</text>
+      </view>
+    </view>
+    <view class="h4Wrap">
+      <text class="h4">我的发布</text>
+    </view>
+  </view>
+    <view class="categoryGroup">
+    <ul>
+      <li wx:for="{{category}}" wx-for-index="index" id="{{item.id}}" data-index="{{index}}" @tap="selectItem" class="{{index==selectedId?'selected':''}}">
+        <a href="javascript:;">{{item.name}}</a>
+      </li>
+    </ul>
+  </view>
+  <view class="clear"></view>
+  <!--列表-->
+  <view class="nearPhoto" wx:if="{{userInfo.role==1}}">
+    <repeat for="{{categoryList}}">
+        <view class="photoBox" @tap="clickNearPhoto('{{item.id}}')">
+          <image src="{{item.main_img_url}}" />
+          <view class="bottomBar">
+              <text class="title">{{item.title}}</text>
+              <text class="view">{{item.view}}</text>
+          </view>
+        </view>
+    </repeat>
+    <view class="clear"></view>
+  </view>
+  <view class="tipsText" wx:else="{{userInfo.role==2}}">
+    游客身份仅支持查看照片，如需发布权限可通过首页授权申请成为好友成员。
+    <button type="primary" style="background:#007ACC; margin-top:30px;" @tap="toLogin">前往授权</button>
+  </view>
+  <TabBar></TabBar>
+</template>
+<script>
+  import wepy from 'wepy';
+  import TabBar from '../components/tabBar';
+  export default class Index extends wepy.page {
+    config = {
+        navigationBarTitleText: '个人中心'
+        }
+      
+    components = {
+      TabBar:TabBar
+    }
+    data = {
+      result:{},
+      userInfo:'',
+      nearPhoto:[], //最近的个人发布列表
+      category:[],
+      selectedId:0,
+      categoryList:[],
+    }
+
+    methods = {
+      clickNearPhoto(id){       //单击最新照片
+        wepy.navigateTo({
+          url: '/pages/photoDetail?id='+id
+        })
+      },
+      selectItem(event){
+        this.selectedId = event.currentTarget.dataset.index;
+        //获取用户选中的分类id
+        let _this = this;
+        let id = event.currentTarget.id;
+        wx.request({
+          url:  this.$parent.globalData.baseUrl+'/getUserCategoryPhoto/',
+          header: {
+            'content-type': 'application/json'
+          },
+          data:{
+            authorId:this.userInfo.userId,
+            category:id
+          },
+          success (res) {
+           _this.categoryList = res.data;
+           _this.$apply();
+          }
+        })
+      },
+      toLogin(){
+        wx.redirectTo({
+            url:"login"
+          })
+      }
+    }
+    onLoad(){
+       //获取用户身份
+      let _this = this;
+      let userInfo = wx.getStorageSync('userInfo');
+      _this.userInfo = userInfo;
+      _this.$apply();
+     console.log(_this.userInfo);
+      //请求分类列表
+      wx.request({
+        url:  _this.$parent.globalData.baseUrl+'/getCategory/',
+        header: {
+          'content-type': 'application/json'
+        },
+        success (res) {
+         _this.category = res.data;
+          _this.$apply();
+        }
+      })
+      //初始化第一个分类列表的数据
+      wx.request({
+        url:  _this.$parent.globalData.baseUrl+'/getUserCategoryPhoto',
+        header: {
+          'content-type': 'application/json'
+        },
+        data:{
+          authorId:_this.userInfo.userId,
+          category:1
+        },
+        success (res) {
+          _this.categoryList = res.data;
+          _this.$apply();
+        }
+      })
+
+    }
+  }
+</script>

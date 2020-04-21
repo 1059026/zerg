@@ -1,0 +1,176 @@
+<style lang="less">
+.clear{clear:both}
+page{background:#f2f2f2;}
+swiper{
+  width: 100%;
+  height: 400rpx;
+  overflow:hidden;
+}
+.container{background:#fff;}
+.swiper-item,.swiper-item image{
+  width: 100%;
+}
+.category{padding-left:40rpx; padding-top:20rpx; overflow:hidden; background:#fff}
+.category li{
+  float:left;
+  width:100rpx;
+  height:60rpx;
+  margin-right:12rpx;
+  padding:100rpx 0 0 20rpx;
+  color:#666;
+}
+.category li:last-child{
+  margin-right:0rpx;
+}
+.travel{
+  background:url("http://47.240.107.187/public/images/travel.png") no-repeat 0 0;
+}
+.life{
+  background:url("http://47.240.107.187/public/images/life.png") no-repeat 0 0;
+}
+.baobao{
+  background:url("http://47.240.107.187/public/images/baobao.png") no-repeat 0 0;
+}
+.gaoxiao{
+  background:url("http://47.240.107.187/public/images/gaoxiao.png") no-repeat 0 0;
+}
+.food{
+  background:url("http://47.240.107.187/public/images/food.png") no-repeat 0 0;
+}
+.nearPhoto{background:#fff; margin-top:20rpx; padding:20rpx 20rpx 180rpx 20rpx;}
+.nearPhoto h4{border-left:#007acc solid 6rpx; padding-left:15rpx; margin-left:20rpx; color:#007acc}
+.photoBox{padding:10rpx; float:left; border:#ddd solid 1rpx; width:300rpx; margin:20rpx 0 0 20rpx; height:300rpx; position:relative}
+.photoBox image{width:100%; height:100%;}
+.bottomBar{position:absolute; width:100%; height:50rpx; line-height:50rpx; bottom:0rpx; left:0rpx; background-color:rgb(96,159,201,0.3); color:#fff; font-size:24rpx;}
+text.title{padding-left:20rpx; display: inline-block; width:200rpx; overflow: hidden; white-space: nowrap; text-overflow:ellipsis;}
+text.view{float:right; background:url("http://47.240.107.187/public/images/view.png") no-repeat left center; padding:0 20rpx 0 50rpx;}
+</style>
+<template class="index">
+  <view class="container">
+    <!--轮播图-->
+      <swiper indicator-dots='true' indicator-color='#007ACC' indicator-active-color='white' autoplay='true'>
+        <block wx:for="{{result}}" wx:key="*this">
+          <swiper-item>
+            <image style="width:100%"  src="{{item.get_head_img.url}}" @tap="toCategory('{{item.id}}')"/>
+          </swiper-item>
+        </block>
+      </swiper>
+      <view class="clear"></view>
+  </view>
+<!--主题分类-->
+    <view class="category">
+      <ul>
+        <li class="life" @tap="toCategory(1)">
+          <text>生活</text>
+        </li>
+        <li class="travel" @tap="toCategory(2)">
+          <text>旅行</text>
+        </li>
+        <li class="baobao" @tap="toCategory(3)">
+          <text>宝宝</text>
+        </li>
+        <li class="gaoxiao" @tap="toCategory(4)">
+          <text>搞笑</text>
+        </li>
+        <li class="food" @tap="toCategory(5)">
+          <text>美食</text>
+        </li>
+        <view class="clear"></view>
+      </ul>
+    </view>
+<!--最新上传-->
+  <view class="nearPhoto">
+    <h4>最新上传</h4>
+  <view class="clear"></view>
+    <repeat for="{{nearPhoto}}">
+        <view class="photoBox" @tap="clickNearPhoto('{{item.id}}')">
+          <image src="{{item.main_img_url}}" />
+          <view class="bottomBar">
+              <text class="title">{{item.title}}</text>
+              <text class="view">{{item.view}}</text>
+          </view>
+        </view>
+    </repeat>
+    <view class="clear"></view>
+  </view>
+  <TabBar></TabBar>
+</template>
+<script>
+  import wepy from 'wepy';
+  import TabBar from '../components/tabBar';
+  export default class Index extends wepy.page {
+    config = {
+        navigationBarTitleText: '好友群相册',
+        }
+
+    components = {
+      TabBar:TabBar
+    }
+    data = {
+      userInfo: {
+        nickName: '加载中...'
+      },
+      nearPhoto:[], //最近发布的照片列表
+      indicatorDots: true,
+      vertical: false,
+      autoplay: false,
+      interval: 2000,
+      result:[],
+    }
+
+    methods = {
+      clickNearPhoto(id){       //单击最新照片
+        wepy.navigateTo({
+          url: '/pages/photoDetail?id='+id
+        })
+      },
+      toCategory(id){         //单击分类
+        console.log(id);
+        wepy.navigateTo({
+          url: '/pages/category?id='+id
+        })
+      }
+    }
+
+    events = {
+
+    }
+
+    onLoad(){
+      let _this = this
+      //请求轮播图
+      wx.request({
+        url: _this.$parent.globalData.baseUrl+'/getCategory',
+        header: {
+          'content-type': 'application/json'
+        },
+        success (res) {
+          console.log(res);
+          _this.result = res.data;
+          // for(var i=0;i<result.length;i++ ){
+          //   _this.background.push(result[i].get_head_img.url);
+          // }
+          _this.$apply();
+        }
+      })
+
+      //请求最新照片
+      wx.request({
+        url: _this.$parent.globalData.baseUrl+'/getNearPhoto',
+        header: {
+          'content-type': 'application/json'
+        },
+        success (res) {
+          for(var i=0;i<res.data.length;i++ ){
+            _this.nearPhoto.push(res.data[i]);
+          }
+          _this.$apply();
+        }
+      })
+    }
+    onShow() {
+
+
+    }
+  }
+</script>

@@ -1,0 +1,100 @@
+<style lang="less">
+  .clear{clear:both}
+.loginBg{width:750rpx; height:1000rpx; background:#fff;}
+    .loginBg image{margin:0 auto; margin-top:100rpx; margin-bottom:50rpx;}
+    .btnColor{width:550rpx; margin:auto; margin-top:50rpx; background:#007acc; color:#fff}
+    .loginText{font-size:14px;color:#888;display: block; width:550rpx; margin:auto;}
+</style>
+<template class="login">
+    <view class="loginBg">
+        <image src="http://47.240.107.187/public/images/loginBg.png" />
+        <text class="loginText">使用发布功能需要授权登录成为相册会员，请单击授权登录后使用。</text>
+        <button  class="btnColor" open-type="getUserInfo"  bindgetuserinfo="bindGetUserInfo">授权登录</button>
+    </view>
+</template>
+<script>
+  import wepy from 'wepy';
+  export default class Index extends wepy.page {
+    config = {
+        navigationBarTitleText: '授权登录',
+        }
+    data = {
+      result:{}
+    }
+
+    methods = {
+
+    }
+    events = {
+
+    }
+    bindGetUserInfo(e){
+        let nickname=e.detail.userInfo.nickName;
+        let _this = this;
+        wx.showLoading({
+            title:'正在授权中'
+        });
+        var userInfo = wx.getStorageSync('userInfo');
+        if(!userInfo){
+             wx.getUserInfo({    //获取昵称用于登录
+                success: function(res) {
+                    //小程序登陆
+                    wx.login({
+                        success (res) {
+                            if (res.code) {
+                                //发往服务端登录
+                                wx.request({
+                                    url: _this.$parent.globalData.baseUrl+'/wxlogin/'+res.code,
+                                    data:{
+                                        nickname:nickname
+                                    },
+                                    success(data){
+                                        console.log(data);
+                                        //token存入缓存中
+                                        wx.setStorage({
+                                            key:"userInfo",
+                                            data:{
+                                                userId:data.data.id,
+                                                nickname:data.data.nickname,
+                                                role:data.data.role,
+                                                openid:data.data.openid,
+                                                token:data.data.token
+                                            }
+                                        });
+                                        wx.hideLoading({
+                                            title:'授权登录成功'
+                                        });
+                                        wepy.navigateTo({
+                                            url: 'index'
+                                        })
+                                    }
+                                })
+                            } else {
+                                console.log('登录失败！'+ res.errMsg)
+                            }
+                        }
+                    })
+                }
+            })
+        }else{
+            wx.showToast({
+              title: '不需要重复授权',
+              icon: 'success',
+              duration: 2000,
+                success:function(){
+                  wepy.navigateTo({
+                      url: 'index'
+                  })
+                }
+            })
+        }
+
+    }
+    onLoad(){
+
+    }
+    onShow() {
+
+    }
+  }
+</script>

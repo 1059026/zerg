@@ -1,0 +1,219 @@
+<style lang="less">
+  .clear{clear:both}
+  .wrap{background:#f8f5fb; padding:30rpx;}
+  .question-input-area{background:#fff; border-radius:5px; padding:20rpx;}
+  .uploadBtn{margin-top:40rpx}
+  .weui-cell__bd{margin-top:40rpx;}
+  .imgBox image{width:160rpx; height:130rpx; border:#ddd solid 1px;}
+  .imgBox{padding:10rpx;float:left;  background:#fff; margin:20rpx 20rpx 0 0; position:relative}
+  .closeBtn{background:url("http://47.240.107.187/public/images/close.png") no-repeat center center; position:absolute; top:0; right:0; width:32rpx; height:32rpx;}
+  .addPhoto{color:#007acc; background:url("http://47.240.107.187/public/images/addPhoto.png") no-repeat left center; width:20px; height:20px; padding-left:50rpx;}
+  .addBg{width:160rpx; height:130rpx; background:#eee url("http://47.240.107.187/public/images/addBg.png") no-repeat center center;}
+  .borderLine{border-bottom:#ddd solid 1px; margin:30rpx 0}
+</style>
+<template>
+  <view class="wrap">
+    <view class="question-input-area">
+      <!--添加照片-->
+      <text class="addPhoto"  @tap="uploadPhoto">添加照片</text>
+      <!--缩略图显示区域-->
+      <view class="thumbnail">
+        <view wx:if="{{thumbImg.length==0}}">
+          <view class="imgBox">
+            <view class="addBg"  @tap="uploadPhoto"></view>
+          </view>
+        </view>
+        <view wx:else>
+          <repeat for="{{thumbImg}}">
+            <view class="imgBox">
+              <view class="closeBtn" @tap="delateImg({{index}})"></view>
+              <image src="{{item}}"/>
+            </view>
+          </repeat>
+        </view>
+
+      <view class="clear"></view>
+    </view>
+      <view class="borderLine"></view>
+      <!-- 问题标题区域  -->
+      <view class="question-title-wrap">
+        <!-- 标题输入框 -->
+        <input class="question-title" placeholder="请输入标题" maxlength="40" placeholder-style="color:#b3b3b3;font-size:18px;" bindinput="handleTitleInput"></input>
+        <!-- 标题输入字数统计 -->
+        <view class="title-input-counter">{{titleCount}}/40</view>
+      </view>
+      <view class="borderLine"></view>
+      <!-- 问题正文区域  -->
+      <view class="weui-cells weui-cells_after-title">
+        <view class="weui-cell">
+          <view class="weui-cell__bd">
+            <!-- 多行输入框 -->
+            <textarea class="weui-textarea" placeholder="请输入照片的描述内容。" maxlength="500" placeholder-style="color:#b3b3b3;font-size:14px;" style="height: 12rem" bindinput="handleContentInput" />
+            <!-- 正文输入字数统计 -->
+            <view class="weui-textarea-counter">{{contentCount}}/500</view>
+          </view>
+        </view>
+      </view>
+      <view class="borderLine"></view>
+      <!--选择照片分类-->
+      <picker bindchange="bindPickerChange" value="{{index}}" range="{{categoryList}}">
+        <view class="picker">
+          选择照片分类：{{categoryList[index]}}
+        </view>
+      </picker>
+</view>
+    <!--上传照片按钮-->
+    <button class="uploadBtn" type="primary" @tap="publishPhoto">发布照片</button>
+  </view>
+</template>
+<script>
+  import wepy from 'wepy';
+  export default class publishPhoto extends wepy.page {
+    config = {
+        navigationBarTitleText: '发布照片'
+        }
+    data={
+      titleCount: 0, //标题字数
+      contentCount: 0, //正文字数
+      title: '', //标题内容
+      content: '', //正文内容
+      thumbImg:[],
+      categoryId:1,  //用户选择的分类id，提交到服务器
+      categoryList: [], //用户选择的分类名称集合
+      index: 0,     //用户选择的分类索引
+      categoryArray: [] //分类信息接口数据
+    }
+
+    onLoad(options) {
+      let _this=this;
+      //获取专题分类
+      wx.request({
+        url: _this.$parent.globalData.baseUrl+'/getCategory',
+        success(res){
+            _this.categoryArray = res.data;
+            _this.categoryArray.forEach(v=>{
+              _this.categoryList.push(v.name);
+            })
+            _this.$apply();
+        }
+      })
+
+    }
+
+    methods = {
+      bindPickerChange: function(e) {
+        this.index = e.detail.value;
+        this.categoryId = this.categoryArray[this.index].id;
+        this.$apply();
+      },
+      uploadPhoto(){
+        let _this = this;
+        wx.chooseImage({
+          count: 9,
+          sizeType: ['original', 'compressed'],
+          sourceType: ['album', 'camera'],
+          success (res) {
+            // tempFilePath可以作为img标签的src属性显示图片
+           const tempFilePaths = res.tempFilePaths;
+           _this.thumbImg = tempFilePaths;
+           _this.$apply();
+          }
+        })
+      },
+      publishPhoto(){
+        if(this.thumbImg.length==0){
+          wx.showToast({
+                   title: '请先上传照片',
+                   icon: 'error',
+                   duration: 2000
+                  })
+          return false;
+        }
+        wx.showLoading({
+            title:'照片发布中，请稍等...',
+            mask:true
+        });
+        //获取照片发布人信息
+        let userInfo = wx.getStorageSync('userInfo');
+        let _this = this;
+
+        //发送图片以外的主表信息
+            wx.request({
+              url: _this.$parent.globalData.baseUrl+'/photoDetail',
+              data:{
+                'title': _this.title,
+                'description':_this.content,
+                'author':userInfo.nickname,
+                'authorId':userInfo.userId,
+                'categoryId':_this.categoryId
+              },
+              success(res){
+                if(res.data.code==1){
+                  getImg(res.data.photoId);
+                }else{
+                  wx.hideLoading({
+                  });
+                  wx.showToast({
+                   title: res.data.msg,
+                   icon: 'error',
+                   duration: 2000
+                  })
+                }
+              }
+            });
+
+        let currentIndex = 0;
+        function getImg(photoId) {
+          if (currentIndex >= _this.thumbImg.length) {
+            wx.showLoading({
+            });
+            //跳转到首页
+            wx.showToast({
+             title: '照片发布成功',
+             icon: 'success',
+             duration: 2000,
+              success:function(res){
+               _this.$navigate({url:"/pages/index"})
+              }
+            })
+          }
+          var url = _this.thumbImg[currentIndex];
+          wx.uploadFile({
+            url:  _this.$parent.globalData.baseUrl+'/uploadPhoto/'+photoId,
+            filePath: url,
+            name: 'img_file',
+            formData: {
+              photoId:photoId
+            },
+            success (res){
+              console.log(res);
+              currentIndex++;
+              getImg(photoId);
+            }
+          })
+        }
+
+      },
+      delateImg(index){
+        this.thumbImg.splice(index,1);
+        this.$apply();
+        console.log(index);
+      },
+      handleTitleInput(e) {
+        const value = e.detail.value
+        this.title = value
+        this.titleCount = value.length  //计算已输入的标题字数
+        console.log(this.titleCount)
+        this.$apply();
+      },
+
+      handleContentInput(e) {
+        const value = e.detail.value
+        this.content = value
+        this.contentCount = value.length  //计算已输入的正文字数
+        this.$apply();
+      }
+    }
+
+  }
+</script>
