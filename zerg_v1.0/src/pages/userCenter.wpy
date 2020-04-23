@@ -9,13 +9,16 @@
   .h4{font-size:36rpx; padding-left:20rpx; margin-left:30rpx; margin-top:35rpx; color:#fff; border-left:#fff solid 3px;}
   .nearPhoto{background:#fff; margin-top:20rpx; padding:20rpx 20rpx 180rpx 20rpx;}
   .nearPhoto h4{border-left:#007acc solid 6rpx; padding-left:15rpx; margin-left:20rpx; color:#007acc}
-  .photoBox{padding:10rpx; float:left; border:#ddd solid 1rpx; width:300rpx; margin:20rpx 0 0 20rpx; height:300rpx; position:relative}
-  .photoBox image{width:100%; height:100%;}
-  .bottomBar{position:absolute; width:100%; height:50rpx; line-height:50rpx; bottom:0rpx; left:0rpx; background-color:rgb(96,159,201,0.3); color:#fff; font-size:24rpx;}
-  text.title{padding-left:20rpx; display: inline-block; width:200rpx; overflow: hidden; white-space: nowrap; text-overflow:ellipsis;}
-  text.view{float:right; background:url("http://47.240.107.187/public/images/view.png") no-repeat left center; padding:0 20rpx 0 50rpx;}
+  .photoBox{padding:10rpx; float:left; border:#ddd solid 1rpx; width:300rpx; margin:20rpx 0 0 20rpx;}
+  .photoBox image{width:100%; height:300rpx;}
+  .bottomBar{width:100%; height:50rpx; line-height:50rpx; background-color:rgb(96,159,201,0.3); color:#fff; font-size:24rpx;
+    display: flex;
+    justify-content: space-between;
+  }
+  text.title{padding-left:10rpx; display: inline-block; width:180rpx; overflow: hidden; white-space: nowrap; text-overflow:ellipsis;}
+  text.view{ background:url("http://47.240.107.187/public/images/view.png") no-repeat left center; padding:0 10rpx 0 40rpx;}
   .categoryGroup li{float:left; width:90rpx; margin:0rpx 28rpx; text-align:center; height:50rpx; margin-top:20rpx;}
-  .categoryGroup li.selected a{color:#0068AE;border-top:#0068AE solid 4rpx}
+  .categoryGroup li.selected{color:#0068AE;border-bottom:#0068AE solid 4rpx}
     .categoryGroup li a{display:block;}
   .categoryGroup li span{color:#ccc; font-size:24rpx;}
   .tipsText{padding:150rpx 40rpx; text-align:center; color:#999}
@@ -39,7 +42,7 @@
   </view>
     <view class="categoryGroup">
     <ul>
-      <li wx:for="{{category}}" wx-for-index="index" id="{{item.id}}" data-index="{{index}}" @tap="selectItem" class="{{index===selectedId?'selected':''}}">
+      <li wx:for="{{category}}" wx-for-index="index" id="{{item.id}}" data-index="{{index}}" @tap="selectItem" class="{{index === selectedId?'selected':''}}">
         <a href="javascript:;">{{item.name}}</a>
       </li>
     </ul>

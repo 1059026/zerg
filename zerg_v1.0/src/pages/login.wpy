@@ -35,58 +35,70 @@
             title:'正在授权中'
         });
         var userInfo = wx.getStorageSync('userInfo');
-        if(!userInfo){
-             wx.getUserInfo({    //获取昵称用于登录
-                success: function(res) {
-                    //小程序登陆
-                    wx.login({
-                        success (res) {
-                            if (res.code) {
-                                //发往服务端登录
-                                wx.request({
-                                    url: _this.$parent.globalData.baseUrl+'/wxlogin/'+res.code,
-                                    data:{
-                                        nickname:nickname
-                                    },
-                                    success(data){
-                                        console.log(data);
-                                        //token存入缓存中
-                                        wx.setStorage({
-                                            key:"userInfo",
-                                            data:{
-                                                userId:data.data.id,
-                                                nickname:data.data.nickname,
-                                                role:data.data.role,
-                                                openid:data.data.openid,
-                                                token:data.data.token
-                                            }
-                                        });
-                                        wx.hideLoading({
-                                            title:'授权登录成功'
-                                        });
-                                        wepy.navigateTo({
-                                            url: 'index'
-                                        })
-                                    }
-                                })
-                            } else {
-                                console.log('登录失败！'+ res.errMsg)
-                            }
-                        }
-                    })
-                }
+        if(userInfo){
+          wx.showToast({
+            title: '不需要重复授权',
+            icon: 'success',
+            duration: 2000,
+          })
+          setTimeout(() => {
+            wx.switchTab({
+              url: '/pages/index'
             })
+          }, 1000)
         }else{
-            wx.showToast({
-              title: '不需要重复授权',
-              icon: 'success',
-              duration: 2000,
-                success:function(){
-                  wepy.navigateTo({
-                      url: 'index'
-                  })
+          wx.getUserInfo({    //获取昵称用于登录
+            success: function(res) {
+              //小程序登陆
+              wx.login({
+                success (res) {
+                  if (res.code) {
+                    //发往服务端登录
+                    wx.request({
+                      url: _this.$parent.globalData.baseUrl+'wxlogin/'+res.code,
+                      data:{
+                        nickname:nickname
+                      },
+                      success(data){
+                        wx.hideLoading();
+                        if (data.data.code === 200) {
+                          //token存入缓存中
+                          wx.setStorage({
+                            key:"userInfo",
+                            data:{
+                              userId:data.data.id,
+                              nickname:data.data.nickname,
+                              role:data.data.role,
+                              openid:data.data.openid,
+                              token:data.data.token
+                            }
+                          });
+                          wx.showToast({
+                            title: '授权登录成功',
+                            icon: 'success',
+                            duration: 2000,
+                          })
+                          setTimeout(() => {
+                            wx.switchTab({
+                              url: '/pages/index'
+                            })
+                          }, 1000)
+                        } else {
+                          wx.showToast({
+                            title: data.data.msg,
+                            icon: 'none',
+                            duration: 2000,
+                          })
+                        }
+                      }
+                    })
+                  } else {
+                    console.log('登录失败！'+ res.errMsg)
+                  }
                 }
-            })
+              })
+            }
+          })
         }
 
     }

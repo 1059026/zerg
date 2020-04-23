@@ -36,20 +36,20 @@ export default class extends wepy.app {
       list: [
         {
           pagePath: 'pages/index',
-          iconPath: 'assters/home.png',
-          selectedIconPath: 'assters/home_active.png',
+          iconPath: 'assters/home_nomal.png',
+          selectedIconPath: 'assters/home_selected.png',
           text: '首页'
         },
         {
           pagePath: 'pages/publishPhoto',
           iconPath: 'assters/add.png',
           selectedIconPath: 'assters/add.png',
-          text: '圈子'
+          text: '发布'
         },
         {
           pagePath: 'pages/userCenter',
-          iconPath: 'assters/user.png',
-          selectedIconPath: 'assters/user_active.png',
+          iconPath: 'assters/user_nomal.png',
+          selectedIconPath: 'assters/user_selected.png',
           text: '我的'
         }
       ]
@@ -71,8 +71,8 @@ export default class extends wepy.app {
       'list': [
         {
           'pagePath': 'index',
-          'iconPath': '../assters/home.png',
-          'selectedIconPath': '../assters/home_active.png',
+          'iconPath': '../assters/home_nomal.png',
+          'selectedIconPath': '../assters/home_selected.png',
           'text': '首页'
         },
         {
@@ -81,8 +81,8 @@ export default class extends wepy.app {
         },
         {
           'pagePath': 'userCenter',
-          'iconPath': '../assters/user.png',
-          'selectedIconPath': '../assters/user_active.png',
+          'iconPath': '../assters/user_nomal.png',
+          'selectedIconPath': '../assters/user_selected.png',
           'text': '我的'
         }
       ]
